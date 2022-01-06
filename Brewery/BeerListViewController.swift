@@ -11,6 +11,7 @@ import UIKit
 class BeerListViewContoller: UITableViewController {
     var beerList = [Beer]()
     var currentPage = 1
+    var dataTasks = [URLSessionTask]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,13 +23,14 @@ class BeerListViewContoller: UITableViewController {
         //UITableView 설정
         tableView.register(BeerListCell.self, forCellReuseIdentifier: "BeerListCell")
         tableView.rowHeight = 150
+        tableView.prefetchDataSource = self
         
         fetchBeer(of: currentPage)
     }
 }
 
 //UITableView DataSource, Delegate
-extension BeerListViewContoller {
+extension BeerListViewContoller: UITableViewDataSourcePrefetching {
     //셀 개수
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return beerList.count
@@ -50,15 +52,28 @@ extension BeerListViewContoller {
         detailViewController.beer = selectedBeer
         self.show(detailViewController, sender: nil)
     }
+    
+    //앞으로 보여질 셀
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+        guard currentPage != 1 else { return }
+
+        //페이징(한 페이지당 25개)
+        //다음 페이지 리스트 가져오기
+        indexPaths.forEach {
+            if ($0.row + 1)/25 + 1 == currentPage {
+                self.fetchBeer(of: currentPage)
+            }
+        }
+    }
 }
 
 //Data Fetching
 private extension BeerListViewContoller {
     func fetchBeer(of page: Int) {
-        guard let url = URL(string: "https://api.punkapi.com/v2/beers?page=\(page)") else { return }
+        guard let url = URL(string: "https://api.punkapi.com/v2/beers?page=\(page)"),
+              dataTasks.firstIndex(where: { $0.originalRequest?.url == url }) == nil else { return } //dataTaks배열 안에 요청된 url이 없어야함.
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        
         let dataTask = URLSession.shared.dataTask(with: request) {[weak self] data, response, error in
             guard error == nil,
                   let self = self,
