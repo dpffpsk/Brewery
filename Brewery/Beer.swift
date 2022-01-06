@@ -6,32 +6,26 @@
 //
 
 import Foundation
-import UIKit
 
 struct Beer: Decodable {
     let id: Int?
-    let name, taglineString, description, imageURL, brewersTips: String?
+    let name, taglineString, description, brewersTips, imageURL: String?
     let foodPairing: [String]?
     
     var tagLine: String {
         let tags = taglineString?.components(separatedBy: ". ")
-        debugPrint("1111111111111111111111")
-        debugPrint(tags)
-        let hashtags = tags?.map {
-            "#" + $0.replacingOccurrences(of: " ", with: "")
+        let hashtags = tags?.map {"#" + $0.replacingOccurrences(of: " ", with: "")
                 .replacingOccurrences(of: ".", with: "")
                 .replacingOccurrences(of: ",", with: " #")
         }
-        debugPrint("222222222222222222222")
-        debugPrint(hashtags)
         return hashtags?.joined(separator: " ") ?? "" //ex)#tag #hashtag
     }
-    
-    enum Codingkeys: String, CodingKey {
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, description
         case taglineString = "tagline"
         case imageURL = "image_url"
         case brewersTips = "brewers_tips"
         case foodPairing = "food_pairing"
-        case id, name, description
     }
 }

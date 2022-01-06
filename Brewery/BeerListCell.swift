@@ -21,6 +21,7 @@ class BeerListCell: UITableViewCell {
         [beerImageView, nameLabel, taglineLabel].forEach {
             contentView.addSubview($0)
         }
+        
         beerImageView.contentMode = .scaleAspectFit
         nameLabel.font = .systemFont(ofSize: 18, weight: .bold)
         nameLabel.numberOfLines = 2
